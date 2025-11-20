@@ -9,16 +9,11 @@ public class ResourcesKeeper : MonoBehaviour
 {
     [SerializeField] private ResourcesFinder _resourcesFinder;
 
-    private List<Item> _foundFree;
-    private List<Item> _foundBusy;
+    private List<Item> _foundFree = new();
+    private List<Item> _foundBusy = new();
 
     public bool HasFreeItems => _foundFree.Count > 0;
-    
-    private void Awake()
-    {
-        _foundFree = new List<Item>();
-        _foundBusy = new List<Item>();
-    }
+
 
     private void OnEnable()
     {
@@ -28,17 +23,17 @@ public class ResourcesKeeper : MonoBehaviour
     public Item GetFreeItem()
     {
         int firstIndex = 0;
-        
+
         int randomIndex = Random.Range(firstIndex, _foundFree.Count);
 
         Item freeItem = _foundFree[randomIndex];
-        
+
         _foundBusy.Add(freeItem);
         _foundFree.Remove(freeItem);
-        
+
         return freeItem;
     }
-    
+
     private void AddItemToList(Item item)
     {
         if (_foundFree.Contains(item) == false && _foundBusy.Contains(item) == false)

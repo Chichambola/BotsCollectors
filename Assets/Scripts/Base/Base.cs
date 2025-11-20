@@ -10,7 +10,6 @@ public class Base : MonoBehaviour
     [SerializeField] private ResourcesFinder _resourcesFinder;
     [SerializeField] private ResourcesKeeper _resourcesKeeper;
     [SerializeField] private CollectorHandler _collectorHandler;
-    [SerializeField] private WoodSpawner _woodSpawner;
     
     private Coroutine _coroutine;
     private List<Wood> _listWood;
@@ -40,6 +39,8 @@ public class Base : MonoBehaviour
             Item tempItem = collector.GetItem();
             
             IdentifyItem(tempItem);
+
+            collector.StopMoving();
         }
     }
 
@@ -62,8 +63,6 @@ public class Base : MonoBehaviour
         if (item.TryGetComponent(out Wood wood))
         {
             _listWood.Add(wood);
-
-            _woodSpawner.Release(wood);
         }
     }
     
@@ -75,6 +74,8 @@ public class Base : MonoBehaviour
 
             Collector collector = _collectorHandler.GetFreeCollector();
             
+            collector.SetTargetItem(item);
+
             collector.MoveToTarget(item.transform.position);
         }
     }

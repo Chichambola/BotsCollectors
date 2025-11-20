@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-[RequireComponent(typeof(BoxCollider2D))]
+[RequireComponent(typeof(BoxCollider))]
 public class Collector : MonoBehaviour
 {
     [SerializeField] private Mover _mover;
     
-    private BoxCollider2D _collider;
+    private BoxCollider _collider;
+    private Item _targetItem;
     private Item _carryingItem;
     private Vector3 _basePosition;
     
@@ -18,42 +19,47 @@ public class Collector : MonoBehaviour
 
     private void Awake()
     {
-        _collider = GetComponent<BoxCollider2D>();
+        _collider = GetComponent<BoxCollider>();
     }
 
     private void OnEnable()
     {
         _basePosition = transform.parent.position;
         IsBusy = false;
-        _carryingItem = null;
+        _targetItem = null;
     }
 
     private void OnTriggerEnter(Collider collider)
     {
-        if (collider.TryGetComponent(out Item item))
+        if (collider.TryGetComponent(out Item item) && item == _targetItem)
         {
             _mover.StartMoving(_basePosition);
             
-            _carryingItem = item;
+            _targetItem = item;
             
             item.transform.parent = transform;
         }
+    }
 
-        if (collider.TryGetComponent(out Base _))
-        {
-            _mover.StopMoving();
-        }
+    public void SetTargetItem(Item item)
+    {
+        _targetItem = item;
     }
 
     public Item GetItem()
     {
-        Item tempItem = _carryingItem;
+        Item tempItem = _targetItem;
 
-        _carryingItem = null;
+        _targetItem = null;
         
         return tempItem;
     }
     
+    public void StopMoving()
+    {
+        _mover.StopMoving();
+    }
+
     public void MoveToTarget(Vector3 target)
     {
         IsBusy = true;

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.4465878, g: 0.4964224, b: 0.57482475, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -259,7 +259,6 @@ MonoBehaviour:
   _resourcesFinder: {fileID: 83381732}
   _resourcesKeeper: {fileID: 83381731}
   _collectorHandler: {fileID: 83381733}
-  _woodSpawner: {fileID: 887418758}
 --- !u!65 &83381725
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -374,7 +373,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f793c3572056db045a73d8e6b2905c2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _delay: 0
+  _delay: 1.02
   _lookRadius: 500
 --- !u!114 &83381733
 MonoBehaviour:
