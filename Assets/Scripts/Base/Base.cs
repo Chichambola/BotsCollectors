@@ -36,11 +36,15 @@ public class Base : MonoBehaviour
     {
         if (collider.TryGetComponent(out Collector collector) && collector.IsCarryingItem)
         {
-            Item tempItem = collector.GetItem();
+            Item tempItem = collector.GetTargetItem();
             
             IdentifyItem(tempItem);
 
-            collector.StopMoving();
+            collector.Reset();
+
+            _collectorHandler.SetUnitFree(collector);
+
+            _resourcesKeeper.RemoveItem(tempItem);
         }
     }
 

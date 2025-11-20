@@ -14,7 +14,6 @@ public class Collector : MonoBehaviour
     private Item _carryingItem;
     private Vector3 _basePosition;
     
-    public bool IsBusy { get; private set; }
     public bool IsCarryingItem => _carryingItem != null;
 
     private void Awake()
@@ -25,8 +24,8 @@ public class Collector : MonoBehaviour
     private void OnEnable()
     {
         _basePosition = transform.parent.position;
-        IsBusy = false;
         _targetItem = null;
+        _carryingItem = null;
     }
 
     private void OnTriggerEnter(Collider collider)
@@ -35,7 +34,7 @@ public class Collector : MonoBehaviour
         {
             _mover.StartMoving(_basePosition);
             
-            _targetItem = item;
+            _carryingItem = item;
             
             item.transform.parent = transform;
         }
@@ -46,7 +45,7 @@ public class Collector : MonoBehaviour
         _targetItem = item;
     }
 
-    public Item GetItem()
+    public Item GetTargetItem()
     {
         Item tempItem = _targetItem;
 
@@ -55,15 +54,17 @@ public class Collector : MonoBehaviour
         return tempItem;
     }
     
-    public void StopMoving()
+    public void Reset()
     {
         _mover.StopMoving();
+
+        _carryingItem = null;
+
+        _targetItem = null;
     }
 
     public void MoveToTarget(Vector3 target)
     {
-        IsBusy = true;
-
         _mover.StartMoving(target);
     }
 }

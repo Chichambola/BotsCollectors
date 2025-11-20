@@ -34,6 +34,11 @@ public class ResourcesKeeper : MonoBehaviour
         return freeItem;
     }
 
+    public void RemoveItem(Item item)
+    {
+        _foundBusy.Remove(item);
+    }
+
     private void AddItemToList(Item item)
     {
         if (_foundFree.Contains(item) == false && _foundBusy.Contains(item) == false)

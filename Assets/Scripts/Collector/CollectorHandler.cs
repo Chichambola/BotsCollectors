@@ -38,6 +38,12 @@ public class CollectorHandler : MonoBehaviour
         return freeCollector;
     }
 
+    public void SetUnitFree(Collector collector)
+    {
+        _busyUnits.Remove(collector);
+        _freeUnits.Add(collector);
+    }
+
     private void GetCollectors()
     {
         if (_collectors.Length != 0)
