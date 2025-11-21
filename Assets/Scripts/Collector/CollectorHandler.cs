@@ -40,10 +40,22 @@ public class CollectorHandler : MonoBehaviour
 
     public void SetUnitFree(Collector collector)
     {
+        collector.Reset();
+        
         _busyUnits.Remove(collector);
         _freeUnits.Add(collector);
     }
+    
+    public void SetTargetItem(Collector collector,Item item)
+    {
+        collector.SetTargetItem(item);
+    }
 
+    public void MoveUnitToTarget(Collector collector, Vector3 target)
+    {
+        collector.StartMoving(target);
+    }
+    
     private void GetCollectors()
     {
         if (_collectors.Length != 0)

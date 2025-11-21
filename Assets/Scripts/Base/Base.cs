@@ -10,6 +10,9 @@ public class Base : MonoBehaviour
     [SerializeField] private ResourcesFinder _resourcesFinder;
     [SerializeField] private ResourcesKeeper _resourcesKeeper;
     [SerializeField] private CollectorHandler _collectorHandler;
+    [SerializeField] private SpawnersHandler _spawnersHandler;
+
+    public event Action<IPoolable, int> ValuesChanged;
     
     private Coroutine _coroutine;
     private List<Wood> _listWood;
@@ -36,18 +39,23 @@ public class Base : MonoBehaviour
     {
         if (collider.TryGetComponent(out Collector collector) && collector.IsCarryingItem)
         {
-            Item tempItem = collector.GetTargetItem();
-            
-            IdentifyItem(tempItem);
-
-            collector.Reset();
-
-            _collectorHandler.SetUnitFree(collector);
-
-            _resourcesKeeper.RemoveItem(tempItem);
+            ProcessTrigger(collector);
         }
     }
 
+    private void ProcessTrigger(Collector collector)
+    {
+        Item tempItem = collector.GetItem();
+            
+        IdentifyItem(tempItem);
+
+        _collectorHandler.SetUnitFree(collector);
+
+        _resourcesKeeper.RemoveItem(tempItem);
+            
+        _spawnersHandler.Release(tempItem);
+    }
+    
     private IEnumerator ScanForItems()
     {
         var wait = new WaitForSeconds(_resourcesFinder.Delay);
@@ -62,11 +70,13 @@ public class Base : MonoBehaviour
         }
     }
 
-    private void IdentifyItem(Item item)
+    private void IdentifyItem(IPoolable item)
     {
-        if (item.TryGetComponent(out Wood wood))
+        if (item is Wood wood)
         {
             _listWood.Add(wood);
+            
+            ValuesChanged?.Invoke(wood, _listWood.Count);
         }
     }
     
@@ -78,9 +88,9 @@ public class Base : MonoBehaviour
 
             Collector collector = _collectorHandler.GetFreeCollector();
             
-            collector.SetTargetItem(item);
+            _collectorHandler.SetTargetItem(collector, item);
 
-            collector.MoveToTarget(item.transform.position);
+            _collectorHandler.MoveUnitToTarget(collector, item.transform.position);
         }
     }
 }

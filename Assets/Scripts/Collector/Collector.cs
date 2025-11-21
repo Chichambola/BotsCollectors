@@ -8,11 +8,13 @@ using UnityEngine;
 public class Collector : MonoBehaviour
 {
     [SerializeField] private Mover _mover;
+    [SerializeField] private AnimationHandler _animationHandler;
     
     private BoxCollider _collider;
     private Item _targetItem;
     private Item _carryingItem;
     private Vector3 _basePosition;
+    private Coroutine _coroutine;
     
     public bool IsCarryingItem => _carryingItem != null;
 
@@ -32,7 +34,7 @@ public class Collector : MonoBehaviour
     {
         if (collider.TryGetComponent(out Item item) && item == _targetItem)
         {
-            _mover.StartMoving(_basePosition);
+            StartMoving(_basePosition);
             
             _carryingItem = item;
             
@@ -40,12 +42,7 @@ public class Collector : MonoBehaviour
         }
     }
 
-    public void SetTargetItem(Item item)
-    {
-        _targetItem = item;
-    }
-
-    public Item GetTargetItem()
+    public Item GetItem()
     {
         Item tempItem = _targetItem;
 
@@ -53,18 +50,46 @@ public class Collector : MonoBehaviour
         
         return tempItem;
     }
+
+    public void SetTargetItem(Item item)
+    {
+        _targetItem = item;
+    }
     
     public void Reset()
     {
-        _mover.StopMoving();
+        StopCoroutine(_coroutine);
+        
+        float speed = 0;
+        
+        _animationHandler.PlayRunAnimation(speed);
 
         _carryingItem = null;
 
         _targetItem = null;
     }
-
-    public void MoveToTarget(Vector3 target)
+    
+    public void StartMoving(Vector3 target)
     {
-        _mover.StartMoving(target);
+        if (_coroutine != null)
+            StopCoroutine(_coroutine);
+        
+        _coroutine = StartCoroutine(Move(target));
+    }
+
+    private IEnumerator Move(Vector3 target)
+    {
+        float speed = _mover.Speed;
+        
+        Vector3 currentTargetPosition = new Vector3(target.x, transform.position.y, target.z);
+        
+        while (enabled)
+        {
+            _animationHandler.PlayRunAnimation(speed);
+            
+            _mover.Move(currentTargetPosition);
+
+            yield return null;
+        }
     }
 }

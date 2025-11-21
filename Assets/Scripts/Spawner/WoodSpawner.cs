@@ -44,6 +44,8 @@ public class WoodSpawner : Spawner<Wood>
 
     protected override void ActionOnRelease(Wood wood)
     {
+        wood.gameObject.transform.parent = null;
+        
         base.ActionOnRelease(wood);
     }
 }

@@ -31,9 +31,13 @@ public abstract class Spawner<T> : MonoBehaviour where T : Item
             maxSize: MaxPoolCapacity);
     }
 
-    private T CreateObject()
+    
+    public void Release(T @object) 
     {
-        return Instantiate(_objectPrefab);
+        if (@object.gameObject.activeSelf)
+        {
+            _pool.Release(@object);
+        }
     }
 
     protected void GetObject()
@@ -44,14 +48,6 @@ public abstract class Spawner<T> : MonoBehaviour where T : Item
     protected virtual void ActionOnGet(T @object)
     {
         @object.gameObject.SetActive(true);
-    }
-
-    public void Release(T @object) 
-    {
-        if (@object.gameObject.activeSelf)
-        {
-            _pool.Release(@object);
-        }
     }
 
     protected virtual void ActionOnRelease(T @object)
@@ -86,4 +82,9 @@ public abstract class Spawner<T> : MonoBehaviour where T : Item
     }
     
     protected abstract IEnumerator Spawn();
+    
+    private T CreateObject()
+    {
+        return Instantiate(_objectPrefab);
+    }
 }
