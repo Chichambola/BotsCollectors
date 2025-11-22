@@ -57,13 +57,13 @@ public class Base : MonoBehaviour
         {
             _resourcesFinder.ScanForItems();
             
-            GetItem();
+            StartCollecting();
             
             yield return wait;
         }
     }
     
-    private void GetItem()
+    private void StartCollecting()
     {
         if (_resourcesKeeper.HasFreeItems && _collectorHandler.HasFreeCollectors)
         {
