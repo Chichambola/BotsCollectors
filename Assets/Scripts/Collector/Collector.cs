@@ -3,18 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 [RequireComponent(typeof(BoxCollider))]
 public class Collector : MonoBehaviour
 {
     [SerializeField] private Mover _mover;
     [SerializeField] private AnimationHandler _animationHandler;
+    [SerializeField] private CollisionDetector _collisionDetector;
     
     private BoxCollider _collider;
     private Item _targetItem;
     private Item _carryingItem;
     private Vector3 _basePosition;
-    private Coroutine _coroutine;
     
     public bool IsCarryingItem => _carryingItem != null;
 
@@ -25,21 +26,19 @@ public class Collector : MonoBehaviour
 
     private void OnEnable()
     {
+        _collisionDetector.TargetItemDetected += CarryItemToBase;
         _basePosition = transform.parent.position;
         _targetItem = null;
         _carryingItem = null;
     }
 
-    private void OnTriggerEnter(Collider collider)
+    private void CarryItemToBase(Item item)
     {
-        if (collider.TryGetComponent(out Item item) && item == _targetItem)
-        {
-            StartMoving(_basePosition);
-            
-            _carryingItem = item;
-            
-            item.transform.parent = transform;
-        }
+        StartMoving(_basePosition);
+
+        _carryingItem = item;
+
+        item.transform.parent = transform;
     }
 
     public Item GetItem()
@@ -54,15 +53,17 @@ public class Collector : MonoBehaviour
     public void SetTargetItem(Item item)
     {
         _targetItem = item;
+        
+        _collisionDetector.SetTargetItem(item);
     }
     
     public void Reset()
-    {
-        StopCoroutine(_coroutine);
-        
+    {        
         float speed = 0;
-        
+
         _animationHandler.PlayRunAnimation(speed);
+
+        _mover.StopMoving();
 
         _carryingItem = null;
 
@@ -71,25 +72,10 @@ public class Collector : MonoBehaviour
     
     public void StartMoving(Vector3 target)
     {
-        if (_coroutine != null)
-            StopCoroutine(_coroutine);
-        
-        _coroutine = StartCoroutine(Move(target));
-    }
-
-    private IEnumerator Move(Vector3 target)
-    {
         float speed = _mover.Speed;
-        
-        Vector3 currentTargetPosition = new Vector3(target.x, transform.position.y, target.z);
-        
-        while (enabled)
-        {
-            _animationHandler.PlayRunAnimation(speed);
-            
-            _mover.Move(currentTargetPosition);
 
-            yield return null;
-        }
+        _mover.StartMoving(target);
+
+        _animationHandler.PlayRunAnimation(speed);
     }
 }
