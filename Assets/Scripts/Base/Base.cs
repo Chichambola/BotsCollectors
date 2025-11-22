@@ -11,16 +11,9 @@ public class Base : MonoBehaviour
     [SerializeField] private ResourcesKeeper _resourcesKeeper;
     [SerializeField] private CollectorHandler _collectorHandler;
     [SerializeField] private SpawnersHandler _spawnersHandler;
-
-    public event Action<IPoolable, int> ValuesChanged;
+    [SerializeField] private Storage _storage;
     
     private Coroutine _coroutine;
-    private List<Wood> _listWood;
-
-    private void Awake()
-    {
-        _listWood = new List<Wood>();
-    }
 
     private void OnEnable()
     {
@@ -47,7 +40,7 @@ public class Base : MonoBehaviour
     {
         Item tempItem = collector.GetItem();
             
-        IdentifyItem(tempItem);
+        _storage.IdentifyItem(tempItem);
 
         _collectorHandler.SetUnitFree(collector);
 
@@ -67,16 +60,6 @@ public class Base : MonoBehaviour
             GetItem();
             
             yield return wait;
-        }
-    }
-
-    private void IdentifyItem(IPoolable item)
-    {
-        if (item is Wood wood)
-        {
-            _listWood.Add(wood);
-            
-            ValuesChanged?.Invoke(wood, _listWood.Count);
         }
     }
     
