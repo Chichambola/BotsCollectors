@@ -5,40 +5,42 @@ using Unity.VisualScripting;
 using UnityEngine;
 using static UnityEditor.Progress;
 
-[RequireComponent(typeof(BoxCollider))]
-public class Collector : MonoBehaviour
+[RequireComponent(typeof(BoxCollider), typeof(Rigidbody))]
+public class Collector : MonoBehaviour, IPoolable
 {
     [SerializeField] private Mover _mover;
     [SerializeField] private AnimationHandler _animationHandler;
     [SerializeField] private CollisionDetector _collisionDetector;
+    [SerializeField] private LayerMask _layerToExclude;
+    [SerializeField] private Base _mainBase;
     
     private BoxCollider _collider;
+    private Rigidbody _rigidbody;
     private Item _targetItem;
     private Item _carryingItem;
     private Vector3 _basePosition;
     
     public bool IsCarryingItem => _carryingItem != null;
+    public Base MainBase => _mainBase;
+
+    public void Init(Base mainBase)
+    {
+        _mainBase = mainBase;
+    }
 
     private void Awake()
     {
         _collider = GetComponent<BoxCollider>();
+        _rigidbody = GetComponent<Rigidbody>();
     }
 
     private void OnEnable()
     {
-        _collisionDetector.TargetItemDetected += CarryItemToBase;
+        _rigidbody.excludeLayers = _layerToExclude;
         _basePosition = transform.parent.position;
         _targetItem = null;
         _carryingItem = null;
-    }
-
-    private void CarryItemToBase(Item item)
-    {
-        StartMoving(_basePosition);
-
-        _carryingItem = item;
-
-        item.transform.parent = transform;
+        _collisionDetector.TargetItemDetected += CarryItemToBase;
     }
 
     public Item GetItem()
@@ -77,5 +79,14 @@ public class Collector : MonoBehaviour
         _mover.StartMoving(target);
 
         _animationHandler.PlayRunAnimation(speed);
+    }
+
+    private void CarryItemToBase(Item item)
+    {
+        StartMoving(_basePosition);
+
+        _carryingItem = item;
+
+        item.transform.parent = transform;
     }
 }

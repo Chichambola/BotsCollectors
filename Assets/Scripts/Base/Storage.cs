@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,7 +7,10 @@ public class Storage : MonoBehaviour
 {
     [SerializeField] private WoodInfo _woodInfo;
 
+    public event Action EnoughToCreateCollector;
+
     private List<Wood> _listWoods;
+    private int _resourcesToCreateCollector = 3;
 
     private void Awake()
     {
@@ -19,7 +23,14 @@ public class Storage : MonoBehaviour
         {
             _listWoods.Add(wood);
 
-            _woodInfo.UpdateValue(_listWoods.Count);
+            if(_listWoods.Count >= _resourcesToCreateCollector)
+            {
+                EnoughToCreateCollector.Invoke();
+
+                _listWoods.RemoveRange(0, _resourcesToCreateCollector);
+            }
         }
+
+        _woodInfo.UpdateValue(_listWoods.Count);
     } 
 }

@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SpawnersHandler : MonoBehaviour
+public class ResourcesSpawnersHandler : MonoBehaviour
 {
     [SerializeField] private WoodSpawner _woodSpawner;
     
-    public void Release(IPoolable item)
+    public void Release(IPoolable poolableObject)
     {
-        if (item is Wood wood)
+        if (poolableObject is Wood wood)
         {
             _woodSpawner.Release(wood);
         }

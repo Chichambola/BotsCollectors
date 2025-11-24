@@ -10,7 +10,7 @@ public class WoodSpawner : Spawner<Wood>
     
     private void OnEnable()
     {
-        _coroutine = StartCoroutine(Spawn());
+        StartSpawning();
     }
 
     private void OnDisable()
@@ -18,7 +18,15 @@ public class WoodSpawner : Spawner<Wood>
         StopCoroutine(_coroutine);
     }
 
-    protected override IEnumerator Spawn()
+    public override void StartSpawning()
+    {
+        if (_coroutine != null) 
+            StopCoroutine(_coroutine);
+
+        _coroutine = StartCoroutine(Spawning());
+    }
+
+    private IEnumerator Spawning()
     {
         var wait = new WaitForSeconds(Delay);
 
@@ -27,18 +35,6 @@ public class WoodSpawner : Spawner<Wood>
             GetObject();
             
             yield return wait;
-        }
-    }
-
-    protected override void ActionOnGet(Wood wood)
-    {
-        SpawnPoint tempSpawnPoint = GetRandomSpawnPoint();
-
-        if (tempSpawnPoint.TryGetComponent(out Collider collider))
-        {
-            wood.transform.position = GetRandomPosition(collider, tempSpawnPoint);
-        
-            base.ActionOnGet(wood);
         }
     }
 

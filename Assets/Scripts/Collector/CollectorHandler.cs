@@ -7,6 +7,10 @@ using Random = UnityEngine.Random;
 public class CollectorHandler : MonoBehaviour
 {
     [SerializeField] private Collector[] _collectors;
+    [SerializeField] private SpawnPoint[] _spawnPoints;
+    [SerializeField] private Collector _prefab;
+    [SerializeField] private Base _mainBase;
+
 
     private List<Collector> _freeUnits;
     private List<Collector> _busyUnits;
@@ -23,6 +27,17 @@ public class CollectorHandler : MonoBehaviour
     }
 
     public bool HasFreeCollectors => _freeUnits.Count > 0;
+
+    public void CreateUnit()
+    {
+        Vector3 randomPosition = GetPosition();
+
+        Collector collector = Instantiate(_prefab, randomPosition, Quaternion.identity, transform.parent);
+
+        collector.Init(_mainBase);
+
+        _freeUnits.Add(collector);
+    }
 
     public Collector GetFreeCollector()
     {
@@ -65,5 +80,13 @@ public class CollectorHandler : MonoBehaviour
                 _freeUnits.Add(collector);
             }
         }
+    }
+    private Vector3 GetPosition()
+    {
+        int firstIndex = 0;
+
+        int randomIndex = Random.Range(firstIndex, _spawnPoints.Length - 1);
+
+        return _spawnPoints[randomIndex].transform.position;
     }
 }

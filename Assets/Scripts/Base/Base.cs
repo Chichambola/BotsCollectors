@@ -1,25 +1,31 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using Random = UnityEngine.Random;
 
 public class Base : MonoBehaviour
 {
     [SerializeField] private ResourcesFinder _resourcesFinder;
     [SerializeField] private ResourcesKeeper _resourcesKeeper;
     [SerializeField] private CollectorHandler _collectorHandler;
-    [SerializeField] private SpawnersHandler _spawnersHandler;
+    [SerializeField] private ResourcesSpawnersHandler _spawnersHandler;
     [SerializeField] private Storage _storage;
-    
+
     private Coroutine _coroutine;
+    private Flag _flag;
 
     private void OnEnable()
     {
+        _storage.EnoughToCreateCollector += SpawnCollector;
+
         if (_coroutine != null)
             StopCoroutine(_coroutine);
-        
+
         _coroutine = StartCoroutine(ScanForItems());
     }
 
@@ -32,23 +38,31 @@ public class Base : MonoBehaviour
     {
         if (collider.TryGetComponent(out Collector collector) && collector.IsCarryingItem)
         {
-            ProcessTrigger(collector);
+            if (gameObject.TryGetComponent(out Base mainBase) && collector.MainBase == mainBase)
+            {
+                ProcessTrigger(collector);
+            }
         }
+    }
+
+    private void SpawnCollector()
+    {
+        _collectorHandler.CreateUnit();
     }
 
     private void ProcessTrigger(Collector collector)
     {
         Item tempItem = collector.GetItem();
-            
+
         _storage.IdentifyItem(tempItem);
 
         _collectorHandler.SetUnitFree(collector);
 
         _resourcesKeeper.RemoveItem(tempItem);
-            
+
         _spawnersHandler.Release(tempItem);
     }
-    
+
     private IEnumerator ScanForItems()
     {
         var wait = new WaitForSeconds(_resourcesFinder.Delay);
@@ -56,13 +70,13 @@ public class Base : MonoBehaviour
         while (enabled)
         {
             _resourcesFinder.ScanForItems();
-            
+
             StartCollecting();
-            
+
             yield return wait;
         }
     }
-    
+
     private void StartCollecting()
     {
         if (_resourcesKeeper.HasFreeItems && _collectorHandler.HasFreeCollectors)
@@ -70,7 +84,7 @@ public class Base : MonoBehaviour
             Item item = _resourcesKeeper.GetFreeItem();
 
             Collector collector = _collectorHandler.GetFreeCollector();
-            
+
             _collectorHandler.SetTargetItem(collector, item);
 
             _collectorHandler.MoveUnitToTarget(collector, item.transform.position);

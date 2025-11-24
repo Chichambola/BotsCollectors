@@ -31,7 +31,8 @@ public abstract class Spawner<T> : MonoBehaviour where T : Item
             maxSize: MaxPoolCapacity);
     }
 
-    
+    public abstract void StartSpawning();
+
     public void Release(T @object) 
     {
         if (@object.gameObject.activeSelf)
@@ -47,6 +48,13 @@ public abstract class Spawner<T> : MonoBehaviour where T : Item
 
     protected virtual void ActionOnGet(T @object)
     {
+        SpawnPoint tempSpawnPoint = GetRandomSpawnPoint();
+
+        if (tempSpawnPoint.TryGetComponent(out Collider collider))
+        {
+            @object.transform.position = GetRandomPosition(collider, tempSpawnPoint);
+        }
+
         @object.gameObject.SetActive(true);
     }
 
@@ -80,9 +88,7 @@ public abstract class Spawner<T> : MonoBehaviour where T : Item
         
         return position;
     }
-    
-    protected abstract IEnumerator Spawn();
-    
+
     private T CreateObject()
     {
         return Instantiate(_objectPrefab);
