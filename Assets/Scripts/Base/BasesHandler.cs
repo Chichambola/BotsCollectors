@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro.EditorUtilities;
 using UnityEngine;
 
 public class BasesHandler : MonoBehaviour
@@ -10,36 +11,48 @@ public class BasesHandler : MonoBehaviour
 
     private Base _base;
     private Flag _flag;
-    
+
     private void OnEnable()
     {
-        _hitDetector.BaseSelected += ShowMessage;
+        _hitDetector.BaseSelected += SelectBase;
         _hitDetector.GroundSelected += InitiateBuilding;
     }
-    
+
     private void OnDisable()
     {
-        _hitDetector.BaseSelected -= ShowMessage;
+        _hitDetector.BaseSelected -= SelectBase;
         _hitDetector.GroundSelected -= InitiateBuilding;
     }
 
-    private void ShowMessage(Base @base)
+    private void SelectBase(Base @base)
     {
-        if (@base.IsFlagPlaced == false)
-        {
-            _base = @base;
-            
-            _flagHandler.ShowText();
-        }
+        _base = @base;
+
+        _flagHandler.ShowText();
     }
 
     private void InitiateBuilding(Vector3 position)
     {
         if (_base != null)
         {
-            _flagHandler.PlaceFlag(position);
-            
-            _base.ChangePriority();
+            if (_base.IsFlagPlaced)
+            {
+                Flag baseFlag = _base.GetTargetFlag();
+
+                _flagHandler.ChangePosition(baseFlag, position);
+            }
+            else
+            {
+                Flag tempFlag = _flagHandler.CreateFlag(position);
+
+                _base.ChangePriority();
+
+                _base.SetTargetFlag(tempFlag);
+            }
         }
+
+        _flagHandler.CloseText();
+
+        _base = null;
     }
 }

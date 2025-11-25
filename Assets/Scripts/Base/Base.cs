@@ -62,6 +62,16 @@ public class Base : MonoBehaviour
         _storage.SetPriority(false);
     }
 
+    public void SetTargetFlag(Flag _flag)
+    {
+        _targetFlag = _flag;
+    }
+    
+    public Flag GetTargetFlag()
+    {
+        return _targetFlag;
+    }
+
     private void InitiateBuildingProcess()
     {
         
