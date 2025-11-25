@@ -16,22 +16,34 @@ public class Base : MonoBehaviour
     [SerializeField] private ResourcesSpawnersHandler _spawnersHandler;
     [SerializeField] private Storage _storage;
 
-    private Coroutine _coroutine;
-    private Flag _flag;
+    private Coroutine _scanningRoutine;
+    private Coroutine _collectingRoutine;
+    private Flag _targetFlag;
+    
+    public bool IsFlagPlaced => _targetFlag != null;
 
     private void OnEnable()
     {
         _storage.EnoughToCreateCollector += SpawnCollector;
+        _storage.EnoughToBuildBase += InitiateBuildingProcess;
 
-        if (_coroutine != null)
-            StopCoroutine(_coroutine);
+        if (_scanningRoutine != null)
+            StopCoroutine(_scanningRoutine); 
+        
+        if (_collectingRoutine != null)
+            StopCoroutine(_collectingRoutine);
 
-        _coroutine = StartCoroutine(ScanForItems());
+        _scanningRoutine = StartCoroutine(ScanForItems());
+        _collectingRoutine = StartCoroutine(CollectItems());
     }
 
     private void OnDisable()
     {
-        StopCoroutine(_coroutine);
+        StopCoroutine(_scanningRoutine);
+        StopCoroutine(_collectingRoutine);
+        
+        _storage.EnoughToCreateCollector -= SpawnCollector;
+        _storage.EnoughToBuildBase -= InitiateBuildingProcess;
     }
 
     private void OnTriggerEnter(Collider collider)
@@ -45,6 +57,16 @@ public class Base : MonoBehaviour
         }
     }
 
+    public void ChangePriority()
+    {
+        _storage.SetPriority(false);
+    }
+
+    private void InitiateBuildingProcess()
+    {
+        
+    }
+    
     private void SpawnCollector()
     {
         _collectorHandler.CreateUnit();
@@ -71,9 +93,19 @@ public class Base : MonoBehaviour
         {
             _resourcesFinder.ScanForItems();
 
+            yield return wait;
+        }
+    }
+
+    private IEnumerator CollectItems()
+    {
+        var wait = new WaitForSeconds(_resourcesFinder.Delay);
+
+        while (enabled)
+        {
             StartCollecting();
 
-            yield return wait;
+            yield return null;
         }
     }
 

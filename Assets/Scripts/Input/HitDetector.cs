@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HitDetectetor : MonoBehaviour
+public class HitDetector : MonoBehaviour
 {
     [SerializeField] private Camera _camera;
     [SerializeField] private InputReader _inputReader;
@@ -11,7 +11,8 @@ public class HitDetectetor : MonoBehaviour
 
     private float _maxDistance = 100000;
 
-    public event Action<Base> CollisionDetected;
+    public event Action<Base> BaseSelected;
+    public event Action<Vector3> GroundSelected;
 
     private void OnEnable()
     {
@@ -27,9 +28,16 @@ public class HitDetectetor : MonoBehaviour
     {
         Ray ray = _camera.ScreenPointToRay(mousePosition);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, _maxDistance) && hit.collider.TryGetComponent(out Base @base))
+        bool isHit = Physics.Raycast(ray, out RaycastHit hit, _maxDistance, _layerMask);
+        
+        if (isHit && hit.collider.TryGetComponent(out Base @base))
         {
-            CollisionDetected?.Invoke(@base);
+            BaseSelected?.Invoke(@base);
+        }
+
+        if (isHit && hit.collider.TryGetComponent(out Ground _))
+        {
+            GroundSelected?.Invoke(hit.point);
         }
     }
 }

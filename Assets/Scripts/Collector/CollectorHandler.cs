@@ -10,8 +10,7 @@ public class CollectorHandler : MonoBehaviour
     [SerializeField] private SpawnPoint[] _spawnPoints;
     [SerializeField] private Collector _prefab;
     [SerializeField] private Base _mainBase;
-
-
+    
     private List<Collector> _freeUnits;
     private List<Collector> _busyUnits;
 
