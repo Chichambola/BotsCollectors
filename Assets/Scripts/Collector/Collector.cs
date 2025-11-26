@@ -20,7 +20,7 @@ public class Collector : MonoBehaviour, IPoolable
     private Rigidbody _rigidbody;
     private ITarget _targetObject;
     private Item _carryingItem;
-    private Vector3 _basePosition;
+    private Vector3 _basePosition => _mainBase.transform.position;
     
     public bool IsCarryingItem => _carryingItem != null;
     public bool IsFlagTarget => _targetObject is Flag;
@@ -40,7 +40,6 @@ public class Collector : MonoBehaviour, IPoolable
     private void OnEnable()
     {
         _rigidbody.excludeLayers = _layerToExclude;
-        _basePosition = transform.parent.position;
         _targetObject = null;
         _carryingItem = null;
         _collisionDetector.ItemDetected += CarryItemToBase;
