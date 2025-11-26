@@ -7,13 +7,18 @@ using Random = UnityEngine.Random;
 public class CollectorHandler : MonoBehaviour
 {
     [SerializeField] private Collector[] _collectors;
-    [SerializeField] private SpawnPoint[] _spawnPoints;
     [SerializeField] private Collector _prefab;
     [SerializeField] private Base _mainBase;
     
+    public event Action<Collector> FlagReached;
+    
     private List<Collector> _freeUnits;
     private List<Collector> _busyUnits;
-
+    private Collector _flagCollector;
+    
+    public int Count => _freeUnits.Count + _busyUnits.Count;
+    public bool HasFlagCollector => _flagCollector != null;
+    
     private void Awake()
     {
         _freeUnits = new List<Collector>();
@@ -29,9 +34,7 @@ public class CollectorHandler : MonoBehaviour
 
     public void CreateUnit()
     {
-        Vector3 randomPosition = GetPosition();
-
-        Collector collector = Instantiate(_prefab, randomPosition, Quaternion.identity, transform.parent);
+        Collector collector = Instantiate(_prefab, transform.position, Quaternion.identity, transform.parent);
 
         collector.Init(_mainBase);
 
@@ -59,10 +62,20 @@ public class CollectorHandler : MonoBehaviour
         _busyUnits.Remove(collector);
         _freeUnits.Add(collector);
     }
-    
-    public void SetTargetItem(Collector collector,Item item)
+
+    public void SetFlagCollector(Collector flagCollector)
     {
-        collector.SetTargetItem(item);
+        _flagCollector = flagCollector;
+    }
+
+    public Collector GetFlagCollector()
+    {
+        return _flagCollector;
+    }
+    
+    public void SetTargetObject(Collector collector,ITarget target)
+    {
+        collector.SetTargetObject(target);
     }
 
     public void MoveUnitToTarget(Collector collector, Vector3 target)
@@ -79,13 +92,5 @@ public class CollectorHandler : MonoBehaviour
                 _freeUnits.Add(collector);
             }
         }
-    }
-    private Vector3 GetPosition()
-    {
-        int firstIndex = 0;
-
-        int randomIndex = Random.Range(firstIndex, _spawnPoints.Length - 1);
-
-        return _spawnPoints[randomIndex].transform.position;
     }
 }

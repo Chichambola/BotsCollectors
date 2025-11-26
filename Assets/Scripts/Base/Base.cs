@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Random = UnityEngine.Random;
 
-public class Base : MonoBehaviour
+public class Base : MonoBehaviour, IPoolable
 {
     [SerializeField] private ResourcesFinder _resourcesFinder;
     [SerializeField] private ResourcesKeeper _resourcesKeeper;
@@ -21,20 +21,24 @@ public class Base : MonoBehaviour
     private Flag _targetFlag;
     
     public bool IsFlagPlaced => _targetFlag != null;
+    public bool HasFlagCollector  => _collectorHandler.HasFlagCollector;
+
+    public void Init(ResourcesKeeper resourcesKeeper, ResourcesSpawnersHandler resourcesSpawnersHandler)
+    {
+        _resourcesKeeper = resourcesKeeper;
+        _spawnersHandler = resourcesSpawnersHandler;
+    }
 
     private void OnEnable()
     {
         _storage.EnoughToCreateCollector += SpawnCollector;
-        _storage.EnoughToBuildBase += InitiateBuildingProcess;
-
+        _storage.EnoughToBuildBase += MoveUnitToFlag;
+        
         if (_scanningRoutine != null)
             StopCoroutine(_scanningRoutine); 
         
         if (_collectingRoutine != null)
             StopCoroutine(_collectingRoutine);
-
-        _scanningRoutine = StartCoroutine(ScanForItems());
-        _collectingRoutine = StartCoroutine(CollectItems());
     }
 
     private void OnDisable()
@@ -43,7 +47,13 @@ public class Base : MonoBehaviour
         StopCoroutine(_collectingRoutine);
         
         _storage.EnoughToCreateCollector -= SpawnCollector;
-        _storage.EnoughToBuildBase -= InitiateBuildingProcess;
+        _storage.EnoughToBuildBase -= MoveUnitToFlag;
+    }
+
+    private void Start()
+    {
+        _scanningRoutine = StartCoroutine(ScanForItems());
+        _collectingRoutine = StartCoroutine(CollectItems());
     }
 
     private void OnTriggerEnter(Collider collider)
@@ -57,14 +67,14 @@ public class Base : MonoBehaviour
         }
     }
 
-    public void ChangePriority()
+    public void ChangePriority(bool value)
     {
-        _storage.SetPriority(false);
+        _storage.SetPriority(value);
     }
 
-    public void SetTargetFlag(Flag _flag)
+    public void SetTargetFlag(Flag flag)
     {
-        _targetFlag = _flag;
+        _targetFlag = flag;
     }
     
     public Flag GetTargetFlag()
@@ -72,9 +82,27 @@ public class Base : MonoBehaviour
         return _targetFlag;
     }
 
-    private void InitiateBuildingProcess()
+    public void ChangeDirection()
     {
+        Collector flagCollector = _collectorHandler.GetFlagCollector();
         
+        _collectorHandler.MoveUnitToTarget(flagCollector, _targetFlag.transform.position);
+    }
+    
+    private void MoveUnitToFlag()
+    {
+        int minUnitsAmount = 1;
+        
+        if (_collectorHandler.HasFreeCollectors && _collectorHandler.Count > minUnitsAmount && _collectorHandler.HasFlagCollector == false)
+        {
+            Collector collector = _collectorHandler.GetFreeCollector();
+            
+            _collectorHandler.SetFlagCollector(collector);
+            
+            _collectorHandler.SetTargetObject(collector, _targetFlag);
+            
+            _collectorHandler.MoveUnitToTarget(collector, _targetFlag.transform.position);
+        }
     }
     
     private void SpawnCollector()
@@ -115,7 +143,7 @@ public class Base : MonoBehaviour
         {
             StartCollecting();
 
-            yield return null;
+            yield return wait;
         }
     }
 
@@ -127,7 +155,7 @@ public class Base : MonoBehaviour
 
             Collector collector = _collectorHandler.GetFreeCollector();
 
-            _collectorHandler.SetTargetItem(collector, item);
+            _collectorHandler.SetTargetObject(collector, item);
 
             _collectorHandler.MoveUnitToTarget(collector, item.transform.position);
         }

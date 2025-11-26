@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Storage : MonoBehaviour
@@ -11,10 +12,14 @@ public class Storage : MonoBehaviour
     public event Action EnoughToBuildBase;
 
     private List<Wood> _listWoods;
+    
     private int _resourcesToCreateCollector = 3;
     private int _resourcesToBuildBase = 5;
+    
     private bool _isBuildingBase => !IsBuildingUnits;
-    public bool IsBuildingUnits { get; private set; }
+    private bool IsBuildingUnits;
+    
+    private Coroutine _buildCoroutine;
 
     private void Awake()
     {
@@ -24,6 +29,13 @@ public class Storage : MonoBehaviour
     private void OnEnable()
     {
         IsBuildingUnits = true;
+
+        _buildCoroutine = StartCoroutine(BuildingRoutine());
+    }
+
+    private void OnDisable()
+    {
+        StopCoroutine(_buildCoroutine);
     }
 
     public void SetPriority(bool value)
@@ -38,24 +50,29 @@ public class Storage : MonoBehaviour
             _listWoods.Add(wood);
         }
         
-        IsEnoughToBuildObject();
-        
         _woodInfo.UpdateValue(_listWoods.Count);
     }
 
-    private void IsEnoughToBuildObject()
+    private IEnumerator BuildingRoutine()
     {
-        if (_listWoods.Count >= _resourcesToCreateCollector && IsBuildingUnits)
+        while (enabled)
         {
-            EnoughToCreateCollector?.Invoke();
+            if (_listWoods.Count >= _resourcesToCreateCollector && IsBuildingUnits)
+            {
+                EnoughToCreateCollector?.Invoke();
 
-            _listWoods.RemoveRange(0, _resourcesToCreateCollector);
-        }
-        else if(_listWoods.Count >= _resourcesToBuildBase && _isBuildingBase)
-        {
-            EnoughToBuildBase?.Invoke();
+                _listWoods.RemoveRange(0, _resourcesToCreateCollector);
+            }
+            else if(_listWoods.Count >= _resourcesToBuildBase && _isBuildingBase)
+            {
+                EnoughToBuildBase?.Invoke();
             
-            _listWoods.RemoveRange(0, _resourcesToBuildBase);
+                _listWoods.RemoveRange(0, _resourcesToBuildBase);
+            }
+            
+            _woodInfo.UpdateValue(_listWoods.Count);
+            
+            yield return null;
         }
     }
 }

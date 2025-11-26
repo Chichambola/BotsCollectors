@@ -6,6 +6,8 @@ using Random = UnityEngine.Random;
 
 public class WoodSpawner : Spawner<Wood>
 {
+    [SerializeField] private List<SpawnPoint> _spawnPoints;
+    
     private Coroutine _coroutine;
     
     private void OnEnable()
@@ -18,7 +20,7 @@ public class WoodSpawner : Spawner<Wood>
         StopCoroutine(_coroutine);
     }
 
-    public override void StartSpawning()
+    public void StartSpawning()
     {
         if (_coroutine != null) 
             StopCoroutine(_coroutine);
@@ -38,10 +40,48 @@ public class WoodSpawner : Spawner<Wood>
         }
     }
 
+    protected override void ActionOnGet(Wood @object)
+    {
+        SpawnPoint tempSpawnPoint = GetRandomSpawnPoint();
+
+        if (tempSpawnPoint.TryGetComponent(out Collider collider))
+        {
+            @object.transform.position = GetRandomPosition(collider, tempSpawnPoint);
+        }
+        
+        base.ActionOnGet(@object);
+    }
+
     protected override void ActionOnRelease(Wood wood)
     {
         wood.gameObject.transform.parent = null;
         
         base.ActionOnRelease(wood);
+    }
+    
+    private SpawnPoint GetRandomSpawnPoint()
+    {
+        int firstIndex = 0;
+        
+        int randomIndex = Random.Range(firstIndex, _spawnPoints.Count);
+        
+        return _spawnPoints[randomIndex];
+    }
+    
+    private Vector3 GetRandomPosition(Collider collider, SpawnPoint spawnPoint)
+    {
+        float spawnAreaMinX = collider.bounds.min.x;
+        float spawnAreaMaxX = collider.bounds.max.x;
+
+        float spawnAreaMinZ = collider.bounds.min.z;
+        float spawnAreaMaxZ = collider.bounds.max.z;
+
+        float objectPositionX = Random.Range(spawnAreaMinX, spawnAreaMaxX);
+        float objectPositionY = spawnPoint.transform.position.y;
+        float objectPositionZ = Random.Range(spawnAreaMinZ, spawnAreaMaxZ);
+        
+        Vector3 position = new Vector3(objectPositionX, objectPositionY, objectPositionZ);
+        
+        return position;
     }
 }

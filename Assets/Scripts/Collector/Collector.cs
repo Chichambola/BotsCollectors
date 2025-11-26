@@ -13,14 +13,17 @@ public class Collector : MonoBehaviour, IPoolable
     [SerializeField] private CollisionDetector _collisionDetector;
     [SerializeField] private LayerMask _layerToExclude;
     [SerializeField] private Base _mainBase;
+
+    public event Action<Collector> FlagReached;
     
     private BoxCollider _collider;
     private Rigidbody _rigidbody;
-    private Item _targetItem;
+    private ITarget _targetObject;
     private Item _carryingItem;
     private Vector3 _basePosition;
     
     public bool IsCarryingItem => _carryingItem != null;
+    public bool IsFlagTarget => _targetObject is Flag;
     public Base MainBase => _mainBase;
 
     public void Init(Base mainBase)
@@ -38,25 +41,33 @@ public class Collector : MonoBehaviour, IPoolable
     {
         _rigidbody.excludeLayers = _layerToExclude;
         _basePosition = transform.parent.position;
-        _targetItem = null;
+        _targetObject = null;
         _carryingItem = null;
-        _collisionDetector.TargetItemDetected += CarryItemToBase;
+        _collisionDetector.ItemDetected += CarryItemToBase;
+    }
+
+    private void OnDisable()
+    {
+        _collisionDetector.ItemDetected -= CarryItemToBase;
     }
 
     public Item GetItem()
     {
-        Item tempItem = _targetItem;
-
-        _targetItem = null;
+        if (_targetObject is Item item)
+        {
+            _targetObject = null;
         
-        return tempItem;
+            return item;
+        }
+        
+        return null;
     }
 
-    public void SetTargetItem(Item item)
+    public void SetTargetObject(ITarget target)
     {
-        _targetItem = item;
+        _targetObject = target;
         
-        _collisionDetector.SetTargetItem(item);
+        _collisionDetector.SetTargetObject(target);
     }
     
     public void Reset()
@@ -69,7 +80,7 @@ public class Collector : MonoBehaviour, IPoolable
 
         _carryingItem = null;
 
-        _targetItem = null;
+        _targetObject = null;
     }
     
     public void StartMoving(Vector3 target)
@@ -80,7 +91,7 @@ public class Collector : MonoBehaviour, IPoolable
 
         _animationHandler.PlayRunAnimation(speed);
     }
-
+    
     private void CarryItemToBase(Item item)
     {
         StartMoving(_basePosition);

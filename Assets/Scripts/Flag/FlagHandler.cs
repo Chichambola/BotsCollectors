@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class FlagHandler : MonoBehaviour
@@ -9,11 +10,18 @@ public class FlagHandler : MonoBehaviour
     [SerializeField] private Flag _flagPrefab;
     [SerializeField] private TextMeshProUGUI _text;
 
+    public event Action<Vector3> FlagReached;
+    
     private Flag _flag;
-
+    
     private void OnEnable()
     {
         _text.gameObject.SetActive(false);
+    }
+
+    private void OnDisable()
+    {
+        CloseText();
     }
 
     public void ShowText()
@@ -28,11 +36,24 @@ public class FlagHandler : MonoBehaviour
 
     public Flag CreateFlag(Vector3 position)
     {
-        return Instantiate(_flagPrefab, position, Quaternion.identity);
+        _flag = Instantiate(_flagPrefab, position, Quaternion.identity);
+
+        _flag.CanBeDestroyed += RemoveFlag;
+        
+        return _flag;
     }
 
-    public void ChangePosition(Flag flag, Vector3 position)
+    public Vector3 GetNewPosition(Flag flag, Vector3 position)
     {
-        flag.gameObject.transform.position = position;
+        return flag.gameObject.transform.position = position;
+    }
+
+    private void RemoveFlag(Flag flag)
+    {
+        flag.CanBeDestroyed -= RemoveFlag;
+        
+        FlagReached?.Invoke(flag.transform.position);
+        
+        Destroy(flag.gameObject);
     }
 }

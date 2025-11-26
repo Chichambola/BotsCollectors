@@ -1,18 +1,27 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class Flag : MonoBehaviour
+public class Flag : MonoBehaviour, ITarget
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private FlagCollisionDetector _collisionDetector;
+
+    public event Action<Flag> CanBeDestroyed;
+    
+    private void OnEnable()
     {
-        
+        _collisionDetector.CollectorDetected += DestroyFlag;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnDisable()
     {
-        
+        _collisionDetector.CollectorDetected -= DestroyFlag;
+    }
+
+    private void DestroyFlag(Flag flag)
+    {
+        CanBeDestroyed?.Invoke(flag);
     }
 }

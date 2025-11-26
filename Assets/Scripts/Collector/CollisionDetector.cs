@@ -5,25 +5,31 @@ using UnityEngine;
 
 public class CollisionDetector : MonoBehaviour
 {
-    public event Action<Item> TargetItemDetected;
+    public event Action<Item> ItemDetected;
+    public event Action FlagDetected;
 
-    private Item _targetItem;
+    private ITarget _targetObject;
 
     private void OnEnable()
     {
-        _targetItem = null;
+        _targetObject = null;
     }
 
-    public void SetTargetItem(Item item)
+    public void SetTargetObject(ITarget target)
     {
-        _targetItem = item;
+        _targetObject = target;
     }
 
     private void OnTriggerEnter(Collider collider)
     {
-        if (collider.TryGetComponent(out Item item) && item == _targetItem)
+        if (collider.TryGetComponent(out Item item) && item == _targetObject)
         {
-            TargetItemDetected?.Invoke(item);
+            ItemDetected?.Invoke(item);
+        }
+
+        if (collider.TryGetComponent(out Flag flag) && flag == _targetObject)
+        {
+            FlagDetected?.Invoke();
         }
     }
 }

@@ -21,10 +21,10 @@ public class Mover : MonoBehaviour
         _coroutine = StartCoroutine(Move(target));
     }
 
-    public IEnumerator Move(Vector3 targetPosition)
+    private IEnumerator Move(Vector3 targetPosition)
     {
         Vector3 currentTargetPosition = new Vector3(targetPosition.x, transform.position.y, targetPosition.z);
-
+        
         while(enabled)
         {
             transform.LookAt(currentTargetPosition);

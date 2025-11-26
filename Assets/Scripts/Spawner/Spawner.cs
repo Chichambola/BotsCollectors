@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
-public abstract class Spawner<T> : MonoBehaviour where T : Item
+public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour, IPoolable
 {
     [SerializeField] protected int PoolCapacity;
     [SerializeField] protected int MaxPoolCapacity = 5;
     [SerializeField] protected float Delay;
-    [SerializeField] protected List<SpawnPoint> SpawnPoints;
     [SerializeField] private T _objectPrefab;
 
+    protected Vector3 SpawnPosition;
+    
     private ObjectPool<T> _pool;
 
     private void OnValidate()
@@ -31,7 +32,17 @@ public abstract class Spawner<T> : MonoBehaviour where T : Item
             maxSize: MaxPoolCapacity);
     }
 
-    public abstract void StartSpawning();
+    public void StartSpawning()
+    {
+        _pool.Get();
+    }
+
+    public void StartSpawning(Vector3 position)
+    {
+        SpawnPosition = position;
+        
+        _pool.Get();
+    }
 
     public void Release(T @object) 
     {
@@ -48,45 +59,12 @@ public abstract class Spawner<T> : MonoBehaviour where T : Item
 
     protected virtual void ActionOnGet(T @object)
     {
-        SpawnPoint tempSpawnPoint = GetRandomSpawnPoint();
-
-        if (tempSpawnPoint.TryGetComponent(out Collider collider))
-        {
-            @object.transform.position = GetRandomPosition(collider, tempSpawnPoint);
-        }
-
         @object.gameObject.SetActive(true);
     }
 
     protected virtual void ActionOnRelease(T @object)
     {
         @object.gameObject.SetActive(false);
-    }
-
-    protected SpawnPoint GetRandomSpawnPoint()
-    {
-        int firstIndex = 0;
-        
-        int randomIndex = Random.Range(firstIndex, SpawnPoints.Count);
-        
-        return SpawnPoints[randomIndex];
-    }
-    
-    protected Vector3 GetRandomPosition(Collider collider, SpawnPoint spawnPoint)
-    {
-        float spawnAreaMinX = collider.bounds.min.x;
-        float spawnAreaMaxX = collider.bounds.max.x;
-
-        float spawnAreaMinZ = collider.bounds.min.z;
-        float spawnAreaMaxZ = collider.bounds.max.z;
-
-        float objectPositionX = Random.Range(spawnAreaMinX, spawnAreaMaxX);
-        float objectPositionY = spawnPoint.transform.position.y;
-        float objectPositionZ = Random.Range(spawnAreaMinZ, spawnAreaMaxZ);
-        
-        Vector3 position = new Vector3(objectPositionX, objectPositionY, objectPositionZ);
-        
-        return position;
     }
 
     private T CreateObject()
