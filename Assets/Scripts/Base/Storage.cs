@@ -16,8 +16,8 @@ public class Storage : MonoBehaviour
     private int _resourcesToCreateCollector = 3;
     private int _resourcesToBuildBase = 5;
     
-    private bool _isBuildingBase => !IsBuildingUnits;
-    private bool IsBuildingUnits;
+    private bool _isBuildingBase => !_isBuildingUnits;
+    private bool _isBuildingUnits;
     
     private Coroutine _buildCoroutine;
 
@@ -28,7 +28,7 @@ public class Storage : MonoBehaviour
 
     private void OnEnable()
     {
-        IsBuildingUnits = true;
+        _isBuildingUnits = true;
 
         _buildCoroutine = StartCoroutine(BuildingRoutine());
     }
@@ -40,7 +40,7 @@ public class Storage : MonoBehaviour
 
     public void SetPriority(bool value)
     {
-        IsBuildingUnits = value;
+        _isBuildingUnits = value;
     }
     
     public void IdentifyItem(IPoolable item)
@@ -57,7 +57,7 @@ public class Storage : MonoBehaviour
     {
         while (enabled)
         {
-            if (_listWoods.Count >= _resourcesToCreateCollector && IsBuildingUnits)
+            if (_listWoods.Count >= _resourcesToCreateCollector && _isBuildingUnits)
             {
                 EnoughToCreateCollector?.Invoke();
 

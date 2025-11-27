@@ -6,7 +6,7 @@ using Random = UnityEngine.Random;
 
 public class CollectorHandler : MonoBehaviour
 {
-    [SerializeField] private Collector[] _collectors;
+    [SerializeField] private List<Collector> _collectors;
     [SerializeField] private Collector _prefab;
     [SerializeField] private Base _mainBase;
     
@@ -16,7 +16,7 @@ public class CollectorHandler : MonoBehaviour
     private List<Collector> _busyUnits;
     private Collector _flagCollector;
     
-    public int Count => _freeUnits.Count + _busyUnits.Count;
+    public int Count => _collectors.Count;
     public bool HasFlagCollector => _flagCollector != null;
     
     private void Awake()
@@ -25,7 +25,7 @@ public class CollectorHandler : MonoBehaviour
         _busyUnits = new List<Collector>();
     }
 
-    private void OnEnable()
+    private void Start()
     {
         GetCollectors();
     }
@@ -38,6 +38,8 @@ public class CollectorHandler : MonoBehaviour
 
         collector.Init(_mainBase);
 
+        _collectors.Add(collector);
+        
         _freeUnits.Add(collector);
     }
 
@@ -63,6 +65,24 @@ public class CollectorHandler : MonoBehaviour
         _freeUnits.Add(collector);
     }
 
+    public void RemoveFlagCollector(Collector collector)
+    {
+        _collectors.Remove(collector);
+        _busyUnits.Remove(collector);
+    }
+    
+    public void SetCollector(Collector collector)
+    {
+        _collectors.Add(collector);
+        _freeUnits.Add(collector);
+        
+        collector.transform.parent = transform;
+        
+        collector.Init(_mainBase);
+        
+        collector.Reset();
+    }
+    
     public void SetFlagCollector(Collector flagCollector)
     {
         _flagCollector = flagCollector;
@@ -70,7 +90,13 @@ public class CollectorHandler : MonoBehaviour
 
     public Collector GetFlagCollector()
     {
-        return _flagCollector;
+        _flagCollector.transform.parent = null;
+        
+        Collector flagCollector = _flagCollector;
+        
+        _flagCollector = null;
+        
+        return flagCollector;
     }
     
     public void SetTargetObject(Collector collector,ITarget target)
@@ -85,7 +111,7 @@ public class CollectorHandler : MonoBehaviour
     
     private void GetCollectors()
     {
-        if (_collectors.Length != 0)
+        if (_collectors.Count != 0)
         {
             foreach (Collector collector in _collectors)
             {
